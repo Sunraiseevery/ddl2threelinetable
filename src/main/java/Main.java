@@ -16,20 +16,29 @@ import java.util.stream.Collectors;
  * @author wzy
  * @date 2021/5/2
  */
+
 public class Main {
 
-    private static final String SQL = "select table_schema,table_name,column_name,column_type,column_key,is_nullable,column_default,column_comment,character_set_name, EXTRA\n" +
-            "\n" +
-            "from information_schema.columns where table_schema=?\n" +
-            "ORDER BY table_name,ORDINAL_POSITION\n" +
-            ";";
+    private static final String SQL = "SELECT c.table_schema, c.table_name, c.column_name, " +
+            "c.column_type, c.column_key, c.is_nullable, c.column_default, c.column_comment, " +
+            "c.character_set_name, c.EXTRA, " +
+            "kcu.constraint_name AS foreign_key_name, " +
+            "kcu.referenced_table_name AS referenced_table, " +
+            "kcu.referenced_column_name AS referenced_column " +
+            "FROM information_schema.columns AS c " +
+            "LEFT JOIN information_schema.key_column_usage AS kcu " +
+            "ON c.table_schema = kcu.table_schema " +
+            "AND c.table_name = kcu.table_name " +
+            "AND c.column_name = kcu.column_name " +
+            "AND kcu.referenced_table_name IS NOT NULL " +
+            "WHERE c.table_schema = ? " +
+            "ORDER BY c.table_name, c.ORDINAL_POSITION;";
 
     public static void main(String[] args) throws Exception {
         ExportWord ew = new ExportWord();
         Main main = new Main();
 
-        //修改此处数据库名
-        String databaseName = "cczucampusforum";
+        String databaseName = "gym_management";
         List<Result> results = main.getTableDetails(databaseName);
         XWPFDocument document = ew.createXWPFDocument(results);
         ew.exportCheckWord(results, document, "expWordTest.docx");
@@ -50,7 +59,6 @@ public class Main {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(druidDataSource);
         final HashMap<String, Result> tableMap = new HashMap<>();
 
-
         return jdbcTemplate.query(SQL, (resultSet, rowNum) -> {
             String tableName = resultSet.getString("TABLE_NAME");
             Result result = tableMap.get(tableName);
@@ -67,6 +75,9 @@ public class Main {
                 tableDetail.setIsNullable(resultSet.getString("IS_NULLABLE"));
                 tableDetail.setColumnComment(resultSet.getString("COLUMN_COMMENT"));
                 tableDetail.setColumnDefault(resultSet.getString("COLUMN_DEFAULT"));
+                tableDetail.setForeignKeyName(resultSet.getString("foreign_key_name"));
+                tableDetail.setReferencedTable(resultSet.getString("referenced_table"));
+                tableDetail.setReferencedColumn(resultSet.getString("referenced_column"));
                 tableDetails.add(tableDetail);
                 return result;
             } else {
@@ -78,6 +89,9 @@ public class Main {
                 tableDetail.setIsNullable(resultSet.getString("IS_NULLABLE"));
                 tableDetail.setColumnComment(resultSet.getString("COLUMN_COMMENT"));
                 tableDetail.setColumnDefault(resultSet.getString("COLUMN_DEFAULT"));
+                tableDetail.setForeignKeyName(resultSet.getString("foreign_key_name"));
+                tableDetail.setReferencedTable(resultSet.getString("referenced_table"));
+                tableDetail.setReferencedColumn(resultSet.getString("referenced_column"));
                 tableDetails.add(tableDetail);
 
                 return null;

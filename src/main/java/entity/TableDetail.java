@@ -22,11 +22,41 @@ public class TableDetail {
     private String columnDefault;
     @TableField("说明")
     private String columnComment;
+    @TableField("外键名")
+    private String foreignKeyName; // 新增字段
+    @TableField("关联表")
+    private String referencedTable; // 新增字段
+    @TableField("关联字段")
+    private String referencedColumn; // 新增字段
 
     public static void main(String[] args) {
         Field declaredField = Arrays.stream(new TableDetail().getClass().getDeclaredFields()).iterator().next();
         TableField annotation = declaredField.getAnnotation(TableField.class);
         System.out.println(annotation.value());
+    }
+
+    public String getForeignKeyName() {
+        return foreignKeyName;
+    }
+
+    public String getReferencedColumn() {
+        return referencedColumn;
+    }
+
+    public String getReferencedTable() {
+        return referencedTable;
+    }
+
+    public void setReferencedColumn(String referencedColumn) {
+        this.referencedColumn = referencedColumn;
+    }
+
+    public void setReferencedTable(String referencedTable) {
+        this.referencedTable = referencedTable;
+    }
+
+    public void setForeignKeyName(String foreignKeyName) {
+        this.foreignKeyName = foreignKeyName;
     }
 
     public String getColumnName() {
